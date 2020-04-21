@@ -1,0 +1,152 @@
+
+
+Column D (Generation)
+0, 1, ...
+
+Column E (Date)
+date ...
+
+Column G (Actual - Actual R)
+IF(OR(I5<10,ISBLANK(I6)),"",I6/I5)
+
+Column H (Actual - Doubling time in days)
+=IF(IF(OR(J5=0,ISBLANK(J6)),"",J6/J5)="","",IF(IF(OR(J5=0,ISBLANK(J6)),"",J6/J5)<=1,"∞",Serial*(LN(2)/LN(IF(OR(J5=0,ISBLANK(J6)),"",J6/J5)))))
+
+Column I (Actual - New infections)
+initial_cases
+ROUND(W5*(1-(1-((V5*(1-J5/Population)^VLOOKUP(Cluster,Cluster_vlookup,2,0))/Population))^I5),0)
+
+Column J (Actual - Cumulative infections)
+=SUM(I$5:I5)
+
+Column L (Detected - Observed R)
+=IF(OR(N11<10,ISBLANK(N12)),"",N12/N11
+
+Column M (Detected - Doubling time in days)
+=IF(IF(OR(O5=0,ISBLANK(O6)),"",O6/O5)="","",IF(IF(OR(O5=0,ISBLANK(O6)),"",O6/O5)<=1,"∞",Serial*(LN(2)/LN(IF(OR(O5=0,ISBLANK(O6)),"",O6/O5)))))
+
+Column N (Detected - New detected cases)
+=IF(ISERROR(OFFSET(BM5,-Delay,0)*1),0,OFFSET(BM5,-Delay,0))
+
+Column O (Detected - Cumulative detected cases)
+=SUM(N$5:N5)
+
+Column Q (Detected - Detection rate)
+=O5/J5
+
+Column S (New tests - # of new tests reported)
+=IF(ISERROR(OFFSET(BA5,-Delay,0)+OFFSET(BB5,-Delay,0)+OFFSET(BC5,-Delay,0)),0,OFFSET(BA5,-Delay,0)+OFFSET(BB5,-Delay,0)+OFFSET(BC5,-Delay,0))
+
+Column T (New tests - Share positive)
+=IF(S5=0,"",N5/S5)
+
+Column V (Target Ro)
+=IF(AND(D5>=Begin_lockdown,Begin_lockdown<>""),Ro_lockdown,IF(AND(D5>=Begin_intermediate,Begin_intermediate<>""),Ro_intermediate,Ro_uncontrolled))
+
+Column W (Susceptible)
+=Population-J5
+
+Column Y (Actual new case - Severe)
+=ROUND(I5*(1-Pct_asy-Pct_mild),0)
+
+Column Z (Actual new case - Mild)
+=ROUND(I5*Pct_mild,0)
+
+Column AA (Actual new case - Asymptomatic)
+=I5-Y5-Z5
+
+Column AC (Population by Symptoms - Severe)
+=ROUND((Population-SUM(Y5:AA5))*(Faux_severe),0)+Y5
+
+Column AD (Population by Symptoms - Mild)
+=ROUND((Population-SUM(Y5:AA5))*(Faux_mild),0)+Z5
+
+Column AE (Population by Symptoms - Asymptomatic)
+=Population-AC5-AD5
+
+Column AG (# desiring test by symptoms - Severe)
+=ROUND(AC5*Desire_severe,0)
+
+Column AH (# desiring test by symptoms - Mild)
+=ROUND(AC5*Desire_mild,0)
+
+Column AI (# desiring test by symptoms - Asymptotic)
+=ROUND(AE5*Desire_asy,0)
+
+Column AK (Test available)
+AK5=0
+AK6=initial_tests
+AK7=ROUND(IF(D7>=Ramp_period,MIN(Tests_max,AK6*Test_growth_rate+AK6),AK6),0)
+
+Column AL (Rationed tests)
+=ROUND(AK5*Rationed_tests,0)
+
+Column AM (On-demand tests)
+=AK5-AL5
+
+Column AO (Allocation of rationed tests - Severe)
+=MIN(AL5,AG5)
+
+Column AP (Allocation of rationed tests - Mild)
+=MIN(AH5,AL5-AO5)
+
+Column AQ (Allocation of rationed tests - Asymtotmatic)
+=MIN(AI5,AL5-AO5-AP5)
+
+Column AS (Unfilled test demand after rationed tests - Severe)
+=AG5-AO5
+
+Column AT (Unfilled test demand after rationed tests - Mild)
+=AH5-AP5
+
+Column AU (Unfilled test demand after rationed tests - Asymptomatic)
+=AI5-AQ5
+
+Column AW (Allocation of on-demand tests - Severe)
+=IF(SUM($AS5:$AU5)=0,0,ROUND($AM5*AS5/SUM($AS5:$AU5),0))
+
+Column AX (Allocation of on-demand tests - Mild)
+=IF(SUM($AS5:$AU5)=0,0,ROUND($AM5*AT5/SUM($AS5:$AU5),0))
+
+Column AY (Allocation of on-demand tests - Asymptomatic)
+=IF(SUM($AS5:$AU5)=0,0,MIN(AU5,AM5-AW5-AX5))
+
+Column BA (Total test conducted - Severe)
+=AW5+AO5
+
+Column BB (Total test conducted - Mild)
+=AX5+AP5
+
+Column BC (Total test conducted - Asymptomatic)
+=AY5+AQ5
+
+
+Column BE (Share of patients who are actually positive - Severe)
+=Y5/AC5
+
+Column BF (Share of patients who are actually positive - Severe)
+=Z5/AD5
+
+Column BG (Share of patients who are actually positive - Severe)
+=AA5/AE5
+
+Column BI (Number of positive tests - Severe)
+=ROUND(BA5*BE5*(1-False_negative),0)+ROUND(BA5*(1-BE5)*(False_positive),0)
+
+Column BJ (Number of positive tests - Mild)
+=ROUND(BB5*BF5*(1-False_negative),0)+ROUND(BB5*(1-BF5)*(False_positive),0)
+
+Column BK (Number of positive tests - Asymptomatic)
+=ROUND(BC5*BG5*(1-False_negative),0)+ROUND(BC5*(1-BG5)*(False_positive),0)
+
+Column BM (Reported new positives w/o lag)
+=BI5+BJ5+BK5
+
+Column BN (Nominal R)
+=""
+=IF(BM5=0,"",BM6/BM5)
+
+Column BO (Share of tests that are positive)
+=""
+=""
+=BM7/SUM(BA7:BC7)
